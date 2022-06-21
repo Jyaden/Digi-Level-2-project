@@ -1,0 +1,89 @@
+using UnityEngine;
+
+public class FPSController : MonoBehaviour
+{
+    public CharacterController controller;
+    public Transform playerRoot;
+    
+    public float sprintSpeed;
+    public float jogSpeed;
+    public float currentSpeed;
+    public Camera playerCam;
+    public float defaultFOV;
+    public float sprintFOV;
+    public float FOVChangeSpeed;
+
+    public float playerWidth;
+    public float currentPlayerHeight;
+    public float defaultPlayerHeight;
+    public float crouchPlayerHeight;
+    public float crouchSpeed;
+    public bool crouching;
+    public bool canUnCrouch;
+    public Transform head;
+    public float roofCheckDistance;
+    public LayerMask whatIsRoof;
+
+    public KeyCode sprintKeyCode;
+    public KeyCode crouchKeyCode;
+    public KeyCode jumpKeyCode;
+
+    Vector3 velocity;
+    public float gravity;
+
+    public float jumpHeight;
+    
+    public bool grounded;
+    public LayerMask whatIsGround;
+    public Transform groundCheck;
+    public float groundCheckDistance;
+
+    private void Update() {
+        
+        float x = Input.GetAxis("Horizontal") * currentSpeed;
+        float y = Input.GetAxis("Vertical") * currentSpeed;
+
+        Vector3 move = playerCam.transform.forward * y + playerRoot.right * x;
+
+        controller.Move(move * Time.deltaTime);
+
+        RaycastHit groundHit;
+        grounded = Physics.Raycast(groundCheck.position, groundCheck.TransformDirection(Vector3.down), out groundHit, groundCheckDistance, whatIsGround);
+
+        RaycastHit roofHit;
+        canUnCrouch = !Physics.Raycast(head.position, head.TransformDirection(Vector3.up), out roofHit, roofCheckDistance, whatIsRoof);
+
+
+        if(Input.GetKey(sprintKeyCode)) {
+            currentSpeed = sprintSpeed;
+            playerCam.fieldOfView = Mathf.Lerp(playerCam.fieldOfView, sprintFOV, FOVChangeSpeed * Time.deltaTime);
+        }else {
+            currentSpeed = jogSpeed;
+            playerCam.fieldOfView = Mathf.Lerp(playerCam.fieldOfView, defaultFOV, FOVChangeSpeed * Time.deltaTime);
+        }
+
+        if(Input.GetKey(crouchKeyCode) && grounded == true) {
+            currentPlayerHeight = Mathf.Lerp(currentPlayerHeight, crouchPlayerHeight, crouchSpeed * Time.deltaTime);
+            playerRoot.localScale = new Vector3(playerWidth, currentPlayerHeight, playerWidth);
+            crouching = true;
+        }else if(canUnCrouch == true) {
+            currentPlayerHeight = Mathf.Lerp(currentPlayerHeight, defaultPlayerHeight, crouchSpeed * Time.deltaTime);
+            playerRoot.localScale = new Vector3(playerWidth, currentPlayerHeight, playerWidth);
+            crouching = false;
+        }
+
+
+        if(grounded == true) {
+            velocity.y = -2f;
+        }else {
+            velocity.y += gravity * Time.deltaTime;
+        }
+
+
+        if(Input.GetKeyDown(jumpKeyCode) && grounded == true && crouching == false) {
+            velocity.y += Mathf.Sqrt(jumpHeight * -2f * gravity);
+        }
+
+        controller.Move(velocity * Time.deltaTime);
+    }
+}
