@@ -1,0 +1,29 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class MouseLook : MonoBehaviour
+{
+    public Transform cam;
+    public Transform playerRoot;
+
+    public float sensitivity;
+
+    float rotX;
+    float rotY;
+
+    private void Start() {
+        Cursor.lockState = CursorLockMode.Locked;
+    }
+
+    private void Update() {
+        float x = Input.GetAxis("Mouse X") * sensitivity;
+        float y = Input.GetAxis("Mouse Y") * sensitivity;
+
+        rotX -= y;
+        rotY += x;
+
+        playerRoot.rotation = Quaternion.Euler(0f, rotY, 0f);
+        cam.rotation = Quaternion.Euler(rotX, rotY, 0f);
+    }
+}
